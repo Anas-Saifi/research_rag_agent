@@ -2436,7 +2436,7 @@ wheels = [
 ]
 
 [[package]]
-name = "resumeproject1"
+name = "research_rag_agent"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
