@@ -1,0 +1,15 @@
+name: CI/CD workflow
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose
+        run: docker compose up -d --build
