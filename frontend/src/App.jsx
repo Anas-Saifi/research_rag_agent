@@ -21,7 +21,7 @@ export default function App() {
     setStatus('thinking')
 
     try {
-      const res = await fetch('http://localhost:8000/query', {
+      const res = await fetch('https://backend-411148586126.asia-south1.run.app', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
