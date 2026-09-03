@@ -21,11 +21,14 @@ export default function App() {
     setStatus('thinking')
 
     try {
-      const res = await fetch('https://backend-411148586126.asia-south1.run.app', {
+      const res = await fetch(
+      'https://backend-411148586126.asia-south1.run.app/query',
+      {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
-      })
+      }
+    )
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.detail || 'Server error')
