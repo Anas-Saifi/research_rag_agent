@@ -63,7 +63,7 @@ build.add_conditional_edges(SCOPE, accepted_or_declined, path_map= {INITIAL: INI
 build.add_edge(DECLINE, END)
 build.add_node(INITIAL, initial_node)
 build.add_node(TOOLS, tools)
-build.add_edge(INITIAL, TOOLS)
+build.add_conditional_edges(INITIAL, tool_node, path_map= {TOOLS: TOOLS, RESPONSE: RESPONSE})
 build.add_node(COMPARISON, comparison_node)
 build.add_edge(TOOLS, COMPARISON)
 build.add_node(RESPONSE, response_node)

@@ -16,6 +16,7 @@ initial_retrieval_prompt = ChatPromptTemplate.from_messages(
             "You are a helpful assistant that helps the user in retrieving relevant documents based on the query\n"
             "You have access to the following tool: \n"
             "retrieve_chunks that retrieves the relevant documents from the database\n"
+            "If you think the query does not require any retrieval, do not retrieve anything\n"
         ),
         (
             "human",
@@ -73,7 +74,7 @@ response_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")
 response_chain = response_prompt | response_llm
 
 class ScopeCheck(BaseModel):
-    scope: str = Field(description = "'ACCEPT' if the query is within the scope else 'DECLINE'")
+    scope: bool = Field(description = "'ACCEPT' if the query is within the scope else 'DECLINE'")
 
 scope_prompt = ChatPromptTemplate.from_messages(
     [(
@@ -81,6 +82,7 @@ scope_prompt = ChatPromptTemplate.from_messages(
         "You are a helpful classifier that classifies where the user query falls within the scope of reasoning or not.\n"
         "The scope here is Computer science related research papers present of the arxiv website\n"
         "Only accept the query if the user query is related to the defined scope above\n"
+        "if the query is unrelated but it is like a generic one like 'hello', 'how are you', etc, accept it\n"
         "if it is outside the scope, give response as 'False'\n"
         "if the query is within the scope, give response as 'True'\n"
     ),
