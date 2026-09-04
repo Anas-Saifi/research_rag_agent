@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from tools import search_tool, retrieve_chunks
 from langgraph.prebuilt import ToolNode
+from pydantic import BaseModel, Field
 
 
 tools = ToolNode([search_tool, retrieve_chunks])
@@ -70,3 +71,25 @@ response_prompt = ChatPromptTemplate.from_messages(
 response_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")
 
 response_chain = response_prompt | response_llm
+
+class ScopeCheck(BaseModel):
+    scope: str = Field(description = "'ACCEPT' if the query is within the scope else 'DECLINE'")
+
+scope_prompt = ChatPromptTemplate.from_messages(
+    (
+        "system",
+        "You are a helpful classifier that classifies where the user query falls within the scope of reasoning or not.\n"
+        "The scope here is Computer science related research papers present of the arxiv website\n"
+        "Only accept the query if the user query is related to the defined scope above\n"
+        "if it is outside the scope, give response as 'False'\n"
+        "if the query is within the scope, give response as 'True'\n"
+    ),
+    (
+        "human",
+        "{query}"
+    )
+)
+
+scope_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")
+
+scope_chain = scope_prompt | scope_llm.with_structured_output(ScopeCheck)
