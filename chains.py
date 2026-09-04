@@ -76,7 +76,7 @@ class ScopeCheck(BaseModel):
     scope: str = Field(description = "'ACCEPT' if the query is within the scope else 'DECLINE'")
 
 scope_prompt = ChatPromptTemplate.from_messages(
-    (
+    [(
         "system",
         "You are a helpful classifier that classifies where the user query falls within the scope of reasoning or not.\n"
         "The scope here is Computer science related research papers present of the arxiv website\n"
@@ -86,8 +86,8 @@ scope_prompt = ChatPromptTemplate.from_messages(
     ),
     (
         "human",
-        "{query}"
-    )
+        "query: {query}"
+    )]
 )
 
 scope_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")

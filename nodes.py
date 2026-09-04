@@ -57,6 +57,7 @@ def response_node(state: State):
 
 build = StateGraph(state_schema=State)
 build.add_node(SCOPE, scope_node)
+build.set_entry_point(SCOPE)
 build.add_node(DECLINE, decline_node)
 build.add_conditional_edges(SCOPE, accepted_or_declined, path_map= {INITIAL: INITIAL, DECLINE: DECLINE})
 build.add_edge(DECLINE, END)

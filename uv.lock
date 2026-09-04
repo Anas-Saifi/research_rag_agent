@@ -2436,9 +2436,9 @@ wheels = [
 ]
 
 [[package]]
-name = "research_rag_agent"
+name = "research-rag-agent"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "feedparser" },
