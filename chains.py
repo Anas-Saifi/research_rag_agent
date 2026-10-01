@@ -34,7 +34,8 @@ initial_llm = ChatOpenAI(
     base_url=hive_base_url,
     api_key=hive_api_key,
     model=hive_model,
-    temperature=0
+    temperature=0,
+    max_tokens=2048,
 ).bind_tools([retrieve_chunks])
 
 initial_chain = initial_retrieval_prompt | initial_llm
@@ -61,7 +62,8 @@ comparison_llm = ChatOpenAI(
     base_url=hive_base_url,
     api_key=hive_api_key,
     model=hive_model,
-    temperature=0
+    temperature=0,
+    max_tokens=2048,
 ).bind_tools([search_tool])
 
 
@@ -88,6 +90,7 @@ response_llm = ChatOpenAI(
     base_url=hive_base_url,
     api_key=hive_api_key,
     model=hive_model,
+    max_tokens=4096,
 )
 
 response_chain = response_prompt | response_llm
@@ -116,6 +119,7 @@ scope_llm = ChatOpenAI(
     base_url=hive_base_url,
     api_key=hive_api_key,
     model=hive_model,
+    max_tokens=256,
 )
 
 scope_chain = scope_prompt | scope_llm.with_structured_output(ScopeCheck, method="json_mode")
