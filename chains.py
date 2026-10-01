@@ -1,5 +1,6 @@
+import os
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 load_dotenv()
 from tools import search_tool, retrieve_chunks
@@ -8,6 +9,10 @@ from pydantic import BaseModel, Field
 
 
 tools = ToolNode([search_tool, retrieve_chunks])
+
+hive_api_key = os.environ.get("HIVE_API_KEY")
+hive_base_url = os.environ.get("HIVE_BASE_URL", "https://api-cdn.thehive.ai/api/v3")
+hive_model = os.environ.get("HIVE_MODEL", "deepseek-ai/deepseek-v4.1-flash")
 
 initial_retrieval_prompt = ChatPromptTemplate.from_messages(
     [
@@ -25,7 +30,12 @@ initial_retrieval_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-initial_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash", temperature = 0).bind_tools([retrieve_chunks])
+initial_llm = ChatOpenAI(
+    base_url=hive_base_url,
+    api_key=hive_api_key,
+    model=hive_model,
+    temperature=0
+).bind_tools([retrieve_chunks])
 
 initial_chain = initial_retrieval_prompt | initial_llm
 
@@ -47,7 +57,12 @@ comparison_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-comparison_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash", temperature = 0).bind_tools([search_tool])
+comparison_llm = ChatOpenAI(
+    base_url=hive_base_url,
+    api_key=hive_api_key,
+    model=hive_model,
+    temperature=0
+).bind_tools([search_tool])
 
 
 comparison_chain = comparison_prompt | comparison_llm
@@ -69,7 +84,11 @@ response_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-response_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")
+response_llm = ChatOpenAI(
+    base_url=hive_base_url,
+    api_key=hive_api_key,
+    model=hive_model,
+)
 
 response_chain = response_prompt | response_llm
 
@@ -92,6 +111,10 @@ scope_prompt = ChatPromptTemplate.from_messages(
     )]
 )
 
-scope_llm = ChatGoogleGenerativeAI(model = "gemini-3.6-flash")
+scope_llm = ChatOpenAI(
+    base_url=hive_base_url,
+    api_key=hive_api_key,
+    model=hive_model,
+)
 
 scope_chain = scope_prompt | scope_llm.with_structured_output(ScopeCheck)

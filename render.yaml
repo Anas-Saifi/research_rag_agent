@@ -18,3 +18,5 @@ services:
         sync: false
       - key: PINECONE_API_KEY
         sync: false
+      - key: HIVE_API_KEY
+        sync: false
