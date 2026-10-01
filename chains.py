@@ -104,6 +104,7 @@ scope_prompt = ChatPromptTemplate.from_messages(
         "if the query is unrelated but it is like a generic one like 'hello', 'how are you', etc, accept it\n"
         "if it is outside the scope, give response as 'False'\n"
         "if the query is within the scope, give response as 'True'\n"
+        "Respond ONLY with a JSON object in the format: {{\"scope\": true}} or {{\"scope\": false}}\n"
     ),
     (
         "human",
@@ -117,4 +118,4 @@ scope_llm = ChatOpenAI(
     model=hive_model,
 )
 
-scope_chain = scope_prompt | scope_llm.with_structured_output(ScopeCheck)
+scope_chain = scope_prompt | scope_llm.with_structured_output(ScopeCheck, method="json_mode")
