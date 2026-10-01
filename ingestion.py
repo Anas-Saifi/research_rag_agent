@@ -7,8 +7,11 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import os
 import re
 import unicodedata
+from pathlib import Path
+
 def ingestion():
-    loader = DirectoryLoader(path = "C:/Anas/Others/langchain_practice_projects/resumeproject1/papers", glob = "**/*.pdf", loader_cls = PyPDFLoader)
+    papers_dir = Path(__file__).resolve().parent / "papers"
+    loader = DirectoryLoader(path = str(papers_dir), glob = "**/*.pdf", loader_cls = PyPDFLoader)
     splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=10000, chunk_overlap=250, disallowed_special= ())
     embeddings = GoogleGenerativeAIEmbeddings(model = "gemini-embedding-001", output_dimensionality = 1024)
     docs = loader.load()

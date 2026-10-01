@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,17 +8,30 @@ from nodes import graph
 
 app = FastAPI(title="Research Paper Assistant API", version="1.0.0")
 
-# Allow the Vite dev server and any local origin
-from fastapi.middleware.cors import CORSMiddleware
+# Configure CORS origins
+default_origins = [
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "https://research-rag-agent.vercel.app",
+]
+
+allowed_origins_raw = os.environ.get("ALLOWED_ORIGINS", "")
+if allowed_origins_raw.strip() == "*":
+    allow_origins = ["*"]
+elif allowed_origins_raw.strip():
+    allow_origins = [origin.strip() for origin in allowed_origins_raw.split(",") if origin.strip()]
+    for origin in default_origins:
+        if origin not in allow_origins:
+            allow_origins.append(origin)
+else:
+    allow_origins = default_origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
-        "https://research-rag-agent.vercel.app",
-    ],
-    allow_credentials=True,
+    allow_origins=allow_origins,
+    allow_credentials=True if "*" not in allow_origins else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -29,6 +43,16 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     response: str
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "Research Paper Assistant API",
+        "status": "online",
+        "health": "/health",
+        "docs": "/docs",
+    }
 
 
 @app.get("/health")
@@ -58,4 +82,5 @@ def run_query(body: QueryRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=False)

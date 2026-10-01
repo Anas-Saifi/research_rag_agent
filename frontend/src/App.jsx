@@ -20,15 +20,13 @@ export default function App() {
     setIsLoading(true)
     setStatus('thinking')
 
+    const apiBaseUrl = (import.meta.env.VITE_API_URL || 'https://backend-411148586126.asia-south1.run.app').replace(/\/$/, '')
     try {
-      const res = await fetch(
-      'https://backend-411148586126.asia-south1.run.app/query',
-      {
+      const res = await fetch(`${apiBaseUrl}/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
-      }
-    )
+      })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.detail || 'Server error')

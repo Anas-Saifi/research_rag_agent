@@ -3,7 +3,7 @@ from langgraph.graph import END, StateGraph, MessagesState
 
 
 class State(MessagesState):
-    documents = list[str]
+    documents: list[str]
     query: str
     llm_response: str
     searched: int
@@ -45,7 +45,7 @@ def comparison_node(state: State):
 
 def tool_node(state: State):
     last_message = state["messages"][-1]
-    if last_message.tool_calls and state["searched"] < 4:
+    if last_message.tool_calls and state.get("searched", 0) < 4:
         state["searched"] = state.get("searched", 0) + 1
         return TOOLS
     return RESPONSE
@@ -59,24 +59,19 @@ build = StateGraph(state_schema=State)
 build.add_node(SCOPE, scope_node)
 build.set_entry_point(SCOPE)
 build.add_node(DECLINE, decline_node)
-build.add_conditional_edges(SCOPE, accepted_or_declined, path_map= {INITIAL: INITIAL, DECLINE: DECLINE})
+build.add_conditional_edges(SCOPE, accepted_or_declined, path_map={INITIAL: INITIAL, DECLINE: DECLINE})
 build.add_edge(DECLINE, END)
 build.add_node(INITIAL, initial_node)
 build.add_node(TOOLS, tools)
-build.add_conditional_edges(INITIAL, tool_node, path_map= {TOOLS: TOOLS, RESPONSE: RESPONSE})
+build.add_conditional_edges(INITIAL, tool_node, path_map={TOOLS: TOOLS, RESPONSE: RESPONSE})
 build.add_node(COMPARISON, comparison_node)
 build.add_edge(TOOLS, COMPARISON)
 build.add_node(RESPONSE, response_node)
-build.add_conditional_edges(COMPARISON, tool_node, path_map = {TOOLS: TOOLS, RESPONSE: RESPONSE})
+build.add_conditional_edges(COMPARISON, tool_node, path_map={TOOLS: TOOLS, RESPONSE: RESPONSE})
 
 graph = build.compile()
 
 
 
 if __name__ == "__main__":
-    graph.get_graph().draw_mermaid_png(output_file_path = "graph.png")
-
-
-
-
-
+    graph.get_graph().draw_mermaid_png(output_file_path="graph.png")

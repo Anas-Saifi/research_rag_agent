@@ -1,6 +1,6 @@
-FROM python
+FROM python:3.10-slim
 
-WORKDIR /myapp
+WORKDIR /app
 
 RUN pip install --no-cache-dir uv
 
@@ -10,6 +10,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
-EXPOSE 8080
+ENV PORT=8000
+EXPOSE 8000
 
-CMD [".venv/bin/uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["sh", "-c", ".venv/bin/uvicorn api:app --host 0.0.0.0 --port ${PORT}"]

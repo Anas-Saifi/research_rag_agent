@@ -11,6 +11,10 @@ load_dotenv()
 import hashlib
 from pathlib import Path
 import feedparser
+BASE_DIR = Path(__file__).resolve().parent
+SEARCH_PAPERS_DIR = BASE_DIR / "search_papers"
+SEARCH_PAPERS_DIR.mkdir(parents=True, exist_ok=True)
+
 embeddings = GoogleGenerativeAIEmbeddings(model = "gemini-embedding-001", output_dimensionality = 1024)
 vector_store = PineconeVectorStore(index_name = os.environ["INDEX_NAME"], embedding = embeddings)
 
@@ -34,12 +38,17 @@ def search_tool(query: str):
     entry = vfeed.entries[0]
     paper_title = entry.title.strip()
     pdf_link = entry.id.replace("abs", "pdf")
-    urllib.request.urlretrieve(pdf_link, f"C:/Anas/Others/langchain_practice_projects/resumeproject1/search_papers/{paper_title}.pdf")
-    loader = PyPDFLoader(f"C:/Anas/Others/langchain_practice_projects/resumeproject1/search_papers/{paper_title}.pdf")
+    
+    # Sanitize title to prevent invalid filename characters on Windows/Linux
+    import re
+    safe_title = re.sub(r'[^\w\-_\. ]', '_', paper_title)[:120]
+    file_path = SEARCH_PAPERS_DIR / f"{safe_title}.pdf"
+
+    urllib.request.urlretrieve(pdf_link, str(file_path))
+    loader = PyPDFLoader(str(file_path))
     docs = loader.load()
     splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size = 1000, chunk_overlap = 100, disallowed_special = ())   
     chunks = splitter.split_documents(docs)
-    file_path = Path(f"C:/Anas/Others/langchain_practice_projects/resumeproject1/search_papers/{paper_title}.pdf")
 
     document_id = hashlib.sha256(
         file_path.read_bytes()
