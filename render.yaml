@@ -1,22 +1,19 @@
 services:
   - type: web
     name: research-rag-backend
-    runtime: python
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.10.13
       - key: INDEX_NAME
-        value: arxiv-papers
+        value: new-arxiv-papers
       - key: ALLOWED_ORIGINS
         value: "*"
-      - key: GOOGLE_API_KEY
-        sync: false
       - key: PINECONE_API_KEY
         sync: false
       - key: HIVE_API_KEY
+        sync: false
+      - key: HF_TOKEN
         sync: false

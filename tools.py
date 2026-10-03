@@ -1,13 +1,17 @@
 import hashlib
 import os
 import re
+import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from pathlib import Path
 
 import feedparser
+import numpy as np
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.embeddings import Embeddings
 from langchain_core.tools import tool
 from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -21,23 +25,57 @@ SEARCH_PAPERS_DIR.mkdir(parents=True, exist_ok=True)
 # Must match the settings used when the index was built (ingestion.py).
 CHUNK_SIZE = 350
 CHUNK_OVERLAP = 50
+EMBED_MODEL = "BAAI/bge-large-en-v1.5"
+EMBED_DIM = 1024
+
+
+class HFInferenceEmbeddings(Embeddings):
+    """bge-large-en-v1.5 served by Hugging Face's hosted inference.
+
+    Same model (and same normalized 1024-dim vectors) as the local
+    sentence-transformers version used for ingestion, but with no torch in the
+    web service, so it fits on a small instance and starts fast.
+    Requires the HF_TOKEN environment variable.
+    """
+
+    def __init__(self, model: str = EMBED_MODEL, workers: int = 8):
+        from huggingface_hub import InferenceClient
+
+        self.model = model
+        self.workers = workers
+        self.client = InferenceClient(
+            provider="hf-inference", api_key=os.environ["HF_TOKEN"]
+        )
+
+    def _embed_one(self, text: str) -> list[float]:
+        last_err = None
+        for attempt in range(3):
+            try:
+                out = self.client.feature_extraction(text, model=self.model)
+                vec = np.asarray(out, dtype=np.float32).reshape(-1)
+                if vec.size != EMBED_DIM:
+                    raise ValueError(
+                        f"Expected {EMBED_DIM}-dim embedding, got {vec.size}"
+                    )
+                norm = np.linalg.norm(vec)
+                return (vec / norm if norm else vec).tolist()
+            except Exception as e:  # retry transient errors (model loading, 429, 5xx)
+                last_err = e
+                time.sleep(2 * (attempt + 1))
+        raise RuntimeError(f"Embedding request failed: {last_err}")
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        with ThreadPoolExecutor(max_workers=self.workers) as pool:
+            return list(pool.map(self._embed_one, texts))
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._embed_one(text)
 
 
 @lru_cache(maxsize=1)
 def get_vector_store() -> PineconeVectorStore:
-    """Load the embedding model on first use, not at import time.
-
-    Importing torch/sentence-transformers and loading bge-large is slow, and
-    doing it at import blocks the web server from opening its port, which is
-    what makes Render report "No open ports detected".
-    """
-    from langchain_huggingface import HuggingFaceEndpointEmbeddings
-    embeddings = HuggingFaceEndpointEmbeddings(
-        model="BAAI/bge-large-en-v1.5",
-        huggingfacehub_api_token=os.environ["HF_TOKEN"],
-    )
     return PineconeVectorStore(
-        index_name=os.environ["INDEX_NAME"], embedding=embeddings
+        index_name=os.environ["INDEX_NAME"], embedding=HFInferenceEmbeddings()
     )
 
 
