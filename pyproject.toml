@@ -14,11 +14,13 @@ dependencies = [
     "langchain-community>=0.4.2",
     "langchain-core>=1.6.0",
     "langchain-google-genai>=4.3.6",
+    "langchain-huggingface>=1.2.2",
     "langchain-pinecone>=0.2.13",
     "langchain-text-splitters>=1.1.2",
     "langgraph>=1.2.11",
     "pypdf>=6.16.2",
     "python-dotenv>=1.2.3",
+    "sentence-transformers>=6.1.0",
     "uvicorn>=0.52.4",
 ]
 

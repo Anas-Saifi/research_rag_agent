@@ -14,8 +14,9 @@ import feedparser
 BASE_DIR = Path(__file__).resolve().parent
 SEARCH_PAPERS_DIR = BASE_DIR / "search_papers"
 SEARCH_PAPERS_DIR.mkdir(parents=True, exist_ok=True)
+from langchain_huggingface import HuggingFaceEmbeddings
 
-embeddings = GoogleGenerativeAIEmbeddings(model = "gemini-embedding-001", output_dimensionality = 1024)
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
 vector_store = PineconeVectorStore(index_name = os.environ["INDEX_NAME"], embedding = embeddings)
 
 
