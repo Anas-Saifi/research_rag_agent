@@ -31,12 +31,10 @@ def get_vector_store() -> PineconeVectorStore:
     doing it at import blocks the web server from opening its port, which is
     what makes Render report "No open ports detected".
     """
-    from langchain_huggingface import HuggingFaceEmbeddings
-
-    embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-large-en-v1.5",
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+    from langchain_huggingface import HuggingFaceEndpointEmbeddings
+    embeddings = HuggingFaceEndpointEmbeddings(
+        model="BAAI/bge-large-en-v1.5",
+        huggingfacehub_api_token=os.environ["HF_TOKEN"],
     )
     return PineconeVectorStore(
         index_name=os.environ["INDEX_NAME"], embedding=embeddings

@@ -10,7 +10,6 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
-ENV PORT=8000
-EXPOSE 8000
-
-CMD ["sh", "-c", ".venv/bin/uvicorn api:app --host 0.0.0.0 --port ${PORT}"]
+ENV PYTHONUNBUFFERED=1
+EXPOSE 10000
+CMD ["sh", "-c", ".venv/bin/uvicorn api:app --host 0.0.0.0 --port ${PORT:-10000}"]
